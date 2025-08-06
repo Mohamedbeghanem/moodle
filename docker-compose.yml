@@ -1,0 +1,52 @@
+# docker-compose.yml
+services:
+  db:
+    image: mysql:8.0
+    container_name: key-academy-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-keyacademy_root_123}
+      MYSQL_DATABASE: ${DB_NAME:-key_academy}
+      MYSQL_USER: ${DB_USER:-keyuser}
+      MYSQL_PASSWORD: ${DB_PASS:-keypass123}
+    volumes:
+      - db_:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - moodle-network
+
+  moodle:
+    image: key-academy:latest
+    container_name: key-academy-app
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - moodle_:/var/www/moodledata
+    depends_on:
+      - db
+    networks:
+      - moodle-network
+
+  adminer:
+    image: adminer:latest
+    container_name: key-academy-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - moodle-network
+
+volumes:
+  db_:
+    driver: local
+  moodle_:
+    driver: local
+
+networks:
+  moodle-network:
+    driver: bridge
